@@ -4,7 +4,9 @@ const cors = require('cors');
 const PORT = 3000;
 const mongoose = require('mongoose');
 // mongoose.set('strictQuery', false);
-const dbUrl = "mongodb+srv://jojopaydbadmin:jojojojo@jojopaycluster.ecc2zb8.mongodb.net/jojopays";
+// const dbUrl = "mongodb+srv://jojopaydbadmin:jojojojo@jojopaycluster.ecc2zb8.mongodb.net/jojopays";
+const dbUrl = "mongodb://localhost:27017/hostel";
+// Hostal-managment localhost:27017 [direct]
 // const cluster = require('cluster');
 // const logRequestResponse = require('./middlewares/logger');
 // const verifyToken = require('./middlewares/tokenMiddleware');
@@ -42,13 +44,27 @@ app.listen(PORT, () => {
 // API Routes
 
 
-mongoose.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true }, (err, succ) => {
-    if (err) {
-        console.log("Db not connected");
-        console.log(err);
-    } else {
-        console.log("MongoDB Atlas connected");
+// mongoose.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true }, (err, succ) => {
+//     if (err) {
+//         console.log("Db not connected");
+//         console.log(err);
+//     } else {
+//         console.log("MongoDB Atlas connected");
+//     }
+// });
+
+async function connectDB() {
+    try {
+        await mongoose.connect(dbUrl, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log('Database connected successfully');
+    } catch (error) {
+        console.error('Database connection failed:', error.message);
     }
-});
+}
+
+connectDB();
 
 
