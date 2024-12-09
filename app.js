@@ -12,6 +12,7 @@ const dbUrl = "mongodb://localhost:27017/hostel";
 // const logRequestResponse = require('./middlewares/logger');
 // const verifyToken = require('./middlewares/tokenMiddleware');
 const User = require('./src/models/mUser');
+const { generateToken } = require('./src/auth/jwtUtils');
 
 // app.use(cors());
 const corsOptions = {
@@ -84,39 +85,68 @@ connectDB();
 
 // Save users
 app.post('/register', async (req, res) => {
-    const { name, email, password, confirmPassword, gender } = req.body;
-    console.log("req.body", req.body);
+    console.log("secret key", process.env.JWT_SECRET);
 
-    // Validate if passwords match
+    const { name, email, password, confirmPassword, gender, role } = req.body;
+
     if (password !== confirmPassword) {
         return res.status(400).json({ message: 'Passwords do not match' });
     }
 
     try {
-        // Check if the user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'Email is already registered' });
         }
 
-        // Hash the password before saving
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create the new user
         const newUser = new User({
             name,
             email,
             password: hashedPassword,
-            gender
+            gender,
+            role: role || 'user', // Default role is 'user'
         });
 
-        // Save the user to the database
         await newUser.save();
-        res.status(201).json({ message: 'User registered successfully', user: newUser });
+
+        const token = generateToken(newUser._id, newUser.role);
+
+        res.status(201).json({ message: 'User registered successfully', token });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+});
+
+// Login api
+
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: 'User not found' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
+
+        const token = generateToken(user._id, user.role);
+        let userRole = user.role;
+        res.status(200).json({ message: 'Login successful', token, userRole });
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err.message });
     }
 });
 
 
+// Admin Api
+
+// app.get('/admin', authenticateToken, authorizeRole(['admin']), (req, res) => {
+//     res.status(200).json({ message: 'Welcome Admin' });
+// });
 
