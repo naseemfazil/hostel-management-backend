@@ -6,13 +6,26 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 // mongoose.set('strictQuery', false);
 // const dbUrl = "mongodb+srv://jojopaydbadmin:jojojojo@jojopaycluster.ecc2zb8.mongodb.net/jojopays";
-const dbUrl = "mongodb://localhost:27017/hostel";
+// const dbUrl = "mongodb://localhost:27017/hostel";
+const DB_CONNECTION_STRING = "mongodb+srv://nexus_admin:ITHANDAPASSWORD@nexus-dev-cluster.tyd0o.mongodb.net/hotel-management?retryWrites=true&w=majority&appName=Nexus-Dev-Cluster";
+
+app.use(express.json());
+
+
+mongoose
+    .connect(DB_CONNECTION_STRING)
+    .then(() => {
+        console.log('Connected to MongoDB');
+    })
+    .catch((error) => {
+        console.error('Error connecting to MongoDB:', error.message);
+    });
 // Hostal-managment localhost:27017 [direct]
 // const cluster = require('cluster');
 // const logRequestResponse = require('./middlewares/logger');
 // const verifyToken = require('./middlewares/tokenMiddleware');
-const User = require('./src/models/mUser');
-const { generateToken } = require('./src/auth/jwtUtils');
+// const User = require('./src/models/mUser');
+// const { generateToken } = require('./src/auth/jwtUtils');
 
 // app.use(cors());
 const corsOptions = {
@@ -24,8 +37,6 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 
-
-
 app.get("/", (req, res) => {
     res.send("Hello");
 });
@@ -34,54 +45,6 @@ app.listen(PORT, () => {
     console.log("Server started at", PORT);
 });
 
-
-// app.use(verifyToken);
-// app.use(logRequestResponse);
-
-// API Routes
-
-
-async function connectDB() {
-    try {
-        await mongoose.connect(dbUrl, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-        console.log('Database connected successfully');
-    } catch (error) {
-        console.error('Database connection failed:', error.message);
-    }
-}
-
-connectDB();
-
-// Testing Api
-// const studentSchema = new mongoose.Schema({
-//     name: { type: String, required: true },
-//     age: { type: Number, required: true },
-//     course: { type: String, required: true },
-// });
-
-// const Student = mongoose.model('Student', studentSchema);
-
-// app.post('/add-student', async (req, res) => {
-//     console.log("req", req.body);
-
-//     const { name, age, course } = req.body;
-
-//     const newStudent = new Student({
-//         name,
-//         age,
-//         course
-//     });
-
-//     try {
-//         const savedStudent = await newStudent.save();
-//         res.status(200).json(savedStudent);
-//     } catch (err) {
-//         res.status(400).json({ error: err.message });
-//     }
-// });
 
 // Save users
 app.post('/register', async (req, res) => {
@@ -142,11 +105,3 @@ app.post('/login', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: err.message });
     }
 });
-
-
-// Admin Api
-
-// app.get('/admin', authenticateToken, authorizeRole(['admin']), (req, res) => {
-//     res.status(200).json({ message: 'Welcome Admin' });
-// });
-
